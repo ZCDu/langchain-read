@@ -1,0 +1,168 @@
+"""In memory store that is not thread safe and has no eviction policy.
+
+This is a simple implementation of the BaseStore using a dictionary that is useful
+primarily for unit testing purposes.
+"""
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+)
+
+from langchain_core.stores import BaseStore
+
+V = TypeVar("V")
+
+
+<<<<<<< Updated upstream
+class InMemoryBaseStore(BaseStore[str, V], Generic[V]):
+=======
+# NOTE: 使用字典来存放数据，这里并没有考虑持久化操作, 所以m开头的操作只是做了一个封装
+# 其实就是get，set等的操作
+class InMemoryStore(BaseStore[str, Any]):
+>>>>>>> Stashed changes
+    """In-memory implementation of the BaseStore using a dictionary.
+
+    Attributes:
+        store (Dict[str, Any]): The underlying dictionary that stores
+            the key-value pairs.
+
+    Examples:
+
+        .. code-block:: python
+
+            from langchain.storage import InMemoryStore
+
+            store = InMemoryStore()
+            store.mset([('key1', 'value1'), ('key2', 'value2')])
+            store.mget(['key1', 'key2'])
+            # ['value1', 'value2']
+            store.mdelete(['key1'])
+            list(store.yield_keys())
+            # ['key2']
+            list(store.yield_keys(prefix='k'))
+            # ['key2']
+    """
+
+    def __init__(self) -> None:
+        """Initialize an empty store."""
+        self.store: Dict[str, V] = {}
+
+<<<<<<< Updated upstream
+    def mget(self, keys: Sequence[str]) -> List[Optional[V]]:
+=======
+    # NOTE: 就是从字典中获取对应key的内容
+    def mget(self, keys: Sequence[str]) -> List[Optional[Any]]:
+>>>>>>> Stashed changes
+        """Get the values associated with the given keys.
+
+        Args:
+            keys (Sequence[str]): A sequence of keys.
+
+        Returns:
+            A sequence of optional values associated with the keys.
+            If a key is not found, the corresponding value will be None.
+        """
+        return [self.store.get(key) for key in keys]
+
+<<<<<<< Updated upstream
+    async def amget(self, keys: Sequence[str]) -> List[Optional[V]]:
+        """Get the values associated with the given keys.
+
+        Args:
+            keys (Sequence[str]): A sequence of keys.
+
+        Returns:
+            A sequence of optional values associated with the keys.
+            If a key is not found, the corresponding value will be None.
+        """
+        return self.mget(keys)
+
+    def mset(self, key_value_pairs: Sequence[Tuple[str, V]]) -> None:
+=======
+    # NOTE: mset只是单纯的字典构建
+    def mset(self, key_value_pairs: Sequence[Tuple[str, Any]]) -> None:
+>>>>>>> Stashed changes
+        """Set the values for the given keys.
+
+        Args:
+            key_value_pairs (Sequence[Tuple[str, V]]): A sequence of key-value pairs.
+
+        Returns:
+            None
+        """
+        for key, value in key_value_pairs:
+            self.store[key] = value
+
+    async def amset(self, key_value_pairs: Sequence[Tuple[str, V]]) -> None:
+        """Set the values for the given keys.
+
+        Args:
+            key_value_pairs (Sequence[Tuple[str, V]]): A sequence of key-value pairs.
+
+        Returns:
+            None
+        """
+        return self.mset(key_value_pairs)
+
+    def mdelete(self, keys: Sequence[str]) -> None:
+        """Delete the given keys and their associated values.
+
+        Args:
+            keys (Sequence[str]): A sequence of keys to delete.
+        """
+        for key in keys:
+            if key in self.store:
+                del self.store[key]
+
+    async def amdelete(self, keys: Sequence[str]) -> None:
+        """Delete the given keys and their associated values.
+
+        Args:
+            keys (Sequence[str]): A sequence of keys to delete.
+        """
+        self.mdelete(keys)
+
+    def yield_keys(self, prefix: Optional[str] = None) -> Iterator[str]:
+        """Get an iterator over keys that match the given prefix.
+
+        Args:
+            prefix (str, optional): The prefix to match. Defaults to None.
+
+        Returns:
+            Iterator[str]: An iterator over keys that match the given prefix.
+        """
+        if prefix is None:
+            yield from self.store.keys()
+        else:
+            for key in self.store.keys():
+                if key.startswith(prefix):
+                    yield key
+
+    async def ayield_keys(self, prefix: Optional[str] = None) -> AsyncIterator[str]:
+        """Get an async iterator over keys that match the given prefix.
+
+        Args:
+            prefix (str, optional): The prefix to match. Defaults to None.
+
+        Returns:
+            AsyncIterator[str]: An async iterator over keys that match the given prefix.
+        """
+        if prefix is None:
+            for key in self.store.keys():
+                yield key
+        else:
+            for key in self.store.keys():
+                if key.startswith(prefix):
+                    yield key
+
+
+InMemoryStore = InMemoryBaseStore[Any]
+InMemoryByteStore = InMemoryBaseStore[bytes]
