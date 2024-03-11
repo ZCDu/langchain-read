@@ -91,6 +91,7 @@ class ZeroShotAgent(Agent):
             return PromptTemplate(template=template, input_variables=input_variables)
         return PromptTemplate.from_template(template)
 
+    # NOTE: 构建了ZeroShotAgent，这个Agent只具备识别tools的能力，而没有执行tools的功能
     @classmethod
     def from_llm_and_tools(
         cls,
@@ -114,7 +115,7 @@ class ZeroShotAgent(Agent):
             format_instructions=format_instructions,
             input_variables=input_variables,
         )
-        # NOTE: 在定义一个执行这个prompt的LLM
+        # NOTE: 在定义一个执行这个prompt的LLM的chain
         llm_chain = LLMChain(
             llm=llm,
             prompt=prompt,

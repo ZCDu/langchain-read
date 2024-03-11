@@ -11,8 +11,7 @@ from langchain.agents.agent_types import AgentType
 from langchain.agents.loading import AGENT_TO_CLASS, load_agent
 
 
-@deprecated(
-    "0.1.0",
+@deprecated( "0.1.0",
     alternative=(
         "Use new agent constructor methods like create_react_agent, create_json_agent, "
         "create_structured_chat_agent, etc."
@@ -49,7 +48,7 @@ def initialize_agent(
         An agent executor
     """
     tags_ = list(tags) if tags else []
-    # NOTE: 默认使用ReAct, 这个AgentType变量对应的其实就是prompt
+    # NOTE: 默认使用ReAct, 这个AgentType是一个枚举类型，对应的内容是prompt
     if agent is None and agent_path is None:
         agent = AgentType.ZERO_SHOT_REACT_DESCRIPTION
     if agent is not None and agent_path is not None:
@@ -57,6 +56,7 @@ def initialize_agent(
             "Both `agent` and `agent_path` are specified, "
             "but at most only one should be."
         )
+    # NOTE: 依据AgentType选择对应的Agent类别
     if agent is not None:
         if agent not in AGENT_TO_CLASS:
             raise ValueError(
@@ -87,7 +87,7 @@ def initialize_agent(
             "this should never happen."
         )
     # NOTE: 额外使用AgentExecutor进行进一步的封装，AgentExecutor是执行Agent的类
-    # 从这里有继承chain类有了call函数，调用
+    # 从这里有继承chain类有了call函数，这里的tools才是具备功能的tools
     return AgentExecutor.from_agent_and_tools(
         agent=agent_obj,
         tools=tools,

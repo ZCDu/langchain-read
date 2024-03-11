@@ -116,6 +116,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
             "ChainOutput", **{k: (Any, None) for k in self.output_keys}
         )
 
+    # NOTE: call到了这里
     def invoke(
         self,
         input: Dict[str, Any],
@@ -134,7 +135,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
         callback_manager = CallbackManager.configure(
             callbacks,
             self.callbacks,
-            self.verbose,
+            self.verbose,   # NOTE: 所以是否显示过程是由langchain_core.callbacks中的类实现的
             tags,
             self.tags,
             metadata,
@@ -332,6 +333,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
             None, self._call, inputs, run_manager.get_sync() if run_manager else None
         )
 
+    # NOTE: Chain基础类具有__call__函数, 调用invoke
     @deprecated("0.1.0", alternative="invoke", removal="0.2.0")
     def __call__(
         self,

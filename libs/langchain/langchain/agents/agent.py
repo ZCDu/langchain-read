@@ -722,6 +722,7 @@ class Agent(BaseSingleActionAgent):
         self, intermediate_steps: List[Tuple[AgentAction, str]], **kwargs: Any
     ) -> Dict[str, Any]:
         """Create the full inputs for the LLMChain from intermediate steps."""
+        # NOTE: langchain的调用是一个循环，在循环中的信息会以agent_scratchpad对应，然后传入到prompt中
         thoughts = self._construct_scratchpad(intermediate_steps)
         new_inputs = {"agent_scratchpad": thoughts, "stop": self._stop}
         full_inputs = {**kwargs, **new_inputs}
@@ -1198,6 +1199,7 @@ class AgentExecutor(Chain):
             run_manager.on_agent_action(agent_action, color="green")
         # Otherwise we lookup the tool
         if agent_action.tool in name_to_tool_map:
+            # NOTE: 从langchain.core.agent AgentAction的封装中取出tool工具
             tool = name_to_tool_map[agent_action.tool]
             return_direct = tool.return_direct
             color = color_mapping[agent_action.tool]
@@ -1376,6 +1378,7 @@ class AgentExecutor(Chain):
         return AgentStep(action=agent_action, observation=observation)
 
     # PERF: 在这里调用tool agent去执行
+    # 基础类的invoke会回到这儿进行执行, 如果只想知道tool的过程，直接看到这里就完事了
     def _call(
         self,
         inputs: Dict[str, str],

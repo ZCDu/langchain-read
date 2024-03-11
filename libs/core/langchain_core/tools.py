@@ -328,6 +328,7 @@ class ChildTool(BaseTool):
         else:
             return (), tool_input
 
+    # NOTE: 工具类的入口
     def run(
         self,
         tool_input: Union[str, Dict[str, Any]],
@@ -572,6 +573,7 @@ class Tool(BaseTool):
         **kwargs: Any,
     ) -> Any:
         """Use the tool."""
+        # NOTE: 所以工具类应该是具备call的，才用使用这话总方式进行调用吧
         if self.func:
             new_argument_supported = signature(self.func).parameters.get("callbacks")
             return (
