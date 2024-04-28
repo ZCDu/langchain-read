@@ -7,11 +7,13 @@ from langchain.memory.chat_memory import BaseChatMemory, BaseMemory
 from langchain.memory.utils import get_prompt_input_key
 
 
+# NOTE: 可以发现，常用的对话记忆池的父类(他的父类才是BaseMemory)和langchian官网自定义Memoyr时候使用的父类不是一个
 class ConversationBufferMemory(BaseChatMemory):
     """Buffer for storing conversation memory."""
 
     human_prefix: str = "Human"
     ai_prefix: str = "AI"
+    # NOTE: 不同的memory其实是通过这个memory_key进行区分的
     memory_key: str = "history"  #: :meta private:
 
     @property
@@ -61,6 +63,7 @@ class ConversationBufferMemory(BaseChatMemory):
         """
         return [self.memory_key]
 
+    # NOTE: 返回的是一个字典，对应memory_key: buffer的内容
     def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Return history buffer."""
         return {self.memory_key: self.buffer}

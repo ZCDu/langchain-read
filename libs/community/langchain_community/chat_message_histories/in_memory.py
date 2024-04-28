@@ -5,6 +5,10 @@ from langchain_core.messages import BaseMessage
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 
+# NOTE: 在LCEL语法中需要使用ChatMessageHistory来封装历史消息
+# 追加了一个aget_messages方法，重写了add_message等方法
+# 他和Memory的父类是一致的
+# HACK: 我们完全可以重写这个类，实现更丰富的功能
 class ChatMessageHistory(BaseChatMessageHistory, BaseModel):
     """In memory implementation of chat message history.
 

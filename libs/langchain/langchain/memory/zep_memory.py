@@ -7,6 +7,7 @@ from langchain_community.chat_message_histories import ZepChatMessageHistory
 from langchain.memory import ConversationBufferMemory
 
 
+# NOTE: 使用zep 数据库管理对话历史，这个优势可以查看对应的项目
 class ZepMemory(ConversationBufferMemory):
     """Persist your chain history to the Zep MemoryStore.
 

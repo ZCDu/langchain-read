@@ -63,6 +63,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
             chains and cannot return as rich of an output as `__call__`.
     """
 
+    # NOTE: memory的使用在父类Chain中定义
     memory: Optional[BaseMemory] = None
     """Optional memory object. Defaults to None.
     Memory is a class that gets called at the start
@@ -131,6 +132,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
         include_run_info = kwargs.get("include_run_info", False)
         return_only_outputs = kwargs.get("return_only_outputs", False)
 
+        # NOTE: prep_inputs对history等input信息进行了重组
         inputs = self.prep_inputs(input)
         callback_manager = CallbackManager.configure(
             callbacks,
@@ -157,6 +159,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
                 else self._call(inputs)
             )
 
+            # NOTE: 后处理阶段会完成对话记录的保存
             final_outputs: Dict[str, Any] = self.prep_outputs(
                 inputs, outputs, return_only_outputs
             )
@@ -454,6 +457,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
             A dict of the final chain outputs.
         """
         self._validate_outputs(outputs)
+        # NOTE: 在后处理时，如果memory不设置为空，就会调用memory的save_context函数保存信息
         if self.memory is not None:
             self.memory.save_context(inputs, outputs)
         if return_only_outputs:
@@ -475,11 +479,13 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
         """
         if not isinstance(inputs, dict):
             _input_keys = set(self.input_keys)
+            # NOTE: 输入预处理的时候，如果memory不为空，则会获取到memory_variables
             if self.memory is not None:
                 # If there are multiple input keys, but some get set by memory so that
                 # only one is not set, we can still figure out which key it is.
                 _input_keys = _input_keys.difference(self.memory.memory_variables)
             inputs = {list(_input_keys)[0]: inputs}
+        # NOTE: 将memory中的内容加载到LLM的input中
         if self.memory is not None:
             external_context = self.memory.load_memory_variables(inputs)
             inputs = dict(inputs, **external_context)

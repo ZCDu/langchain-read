@@ -100,6 +100,7 @@ if TYPE_CHECKING:
 Other = TypeVar("Other")
 
 
+# PERF: 这里就是LCEL语法起作用的位置
 class Runnable(Generic[Input, Output], ABC):
     """A unit of work that can be invoked, batched, streamed, transformed and composed.
 
@@ -466,6 +467,7 @@ class Runnable(Generic[Input, Output], ABC):
 
     """ --- Public API --- """
 
+    # NOTE: 在LECL语法中执行chain.invoke的时候，执行的位置
     @abstractmethod
     def invoke(self, input: Input, config: Optional[RunnableConfig] = None) -> Output:
         """Transform a single input into an output. Override to implement.
@@ -564,6 +566,7 @@ class Runnable(Generic[Input, Output], ABC):
         coros = map(ainvoke, inputs, configs)
         return await gather_with_concurrency(configs[0].get("max_concurrency"), *coros)
 
+    # NOTE: stream会回到invoke  
     def stream(
         self,
         input: Input,
@@ -4066,6 +4069,7 @@ class RunnableBindingBase(RunnableSerializable[Input, Output]):
         config: Optional[RunnableConfig] = None,
         **kwargs: Optional[Any],
     ) -> Output:
+        # FIX: 所以回到了各个LCEL元素部分的invoke去执行？
         return self.bound.invoke(
             input,
             self._merge_configs(config),

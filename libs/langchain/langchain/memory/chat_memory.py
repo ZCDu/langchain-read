@@ -33,9 +33,11 @@ class BaseChatMemory(BaseMemory, ABC):
             output_key = self.output_key
         return inputs[prompt_input_key], outputs[output_key]
 
+    # NOTE: 在LLMchain结束的时候，会调用save_context将对话内容保存起来
     def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
         """Save context from this conversation to buffer."""
         input_str, output_str = self._get_input_output(inputs, outputs)
+        # NOTE: 这里用的是格式化的存储方式
         self.chat_memory.add_messages(
             [HumanMessage(content=input_str), AIMessage(content=output_str)]
         )

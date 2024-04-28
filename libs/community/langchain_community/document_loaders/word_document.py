@@ -12,6 +12,7 @@ from langchain_community.document_loaders.base import BaseLoader
 from langchain_community.document_loaders.unstructured import UnstructuredFileLoader
 
 
+# NOTE: 读取word格式文件, 使用到了doc2txt,那么使用这种方式就是有问题的，因为没办法读取图片信息了
 class Docx2txtLoader(BaseLoader, ABC):
     """Load `DOCX` file using `docx2txt` and chunks at character level.
 
@@ -48,8 +49,10 @@ class Docx2txtLoader(BaseLoader, ABC):
 
     def load(self) -> List[Document]:
         """Load given path as single page."""
+        # NOTE: 使用docx2txt转化word, 这个玩意用的是zipfile的方式提取word的内容
         import docx2txt
 
+        # NOTE: docx2txt处理之后的文本会使用langchain的Document类进行封装
         return [
             Document(
                 page_content=docx2txt.process(self.file_path),

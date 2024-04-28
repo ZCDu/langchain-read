@@ -34,6 +34,7 @@ from langchain_core.utils.input import get_colored_text
 from langchain.chains.base import Chain
 
 
+# NOTE: LLMChain是较为常用的chain封装
 class LLMChain(Chain):
     """Chain to run queries against LLMs.
 
@@ -253,6 +254,7 @@ class LLMChain(Chain):
     def _run_output_key(self) -> str:
         return self.output_key
 
+    # NOTE: 对输出的展示形式进行了封装
     def create_outputs(self, llm_result: LLMResult) -> List[Dict[str, Any]]:
         """Create outputs from response."""
         result = [
@@ -275,6 +277,7 @@ class LLMChain(Chain):
         response = await self.agenerate([inputs], run_manager=run_manager)
         return self.create_outputs(response)[0]
 
+    # NOTE: LLMChain predict->Chain call 进行了些许配置->LLMChain invoke     
     def predict(self, callbacks: Callbacks = None, **kwargs: Any) -> str:
         """Format prompt with kwargs and pass to LLM.
 

@@ -35,8 +35,9 @@ class EnsembleRetriever(BaseRetriever):
             Default is 60.
     """
 
-<<<<<<< Updated upstream
-    retrievers: List[RetrieverLike]
+    # NOTE: 直接传入多个不同的检索器，来构建聚合检索
+    retrievers: List[BaseRetriever]
+    # NOTE: 需要为每个检索器分配权重
     weights: List[float]
     c: int = 60
 
@@ -47,15 +48,7 @@ class EnsembleRetriever(BaseRetriever):
             spec for retriever in self.retrievers for spec in retriever.config_specs
         )
 
-=======
-    # NOTE: 直接传入多个不同的检索器，来构建聚合检索
-    retrievers: List[BaseRetriever]
-    # NOTE: 需要为每个检索器分配权重
-    weights: List[float]
-    c: int = 60
-
     # NOTE: 不设置权重则均等化权重
->>>>>>> Stashed changes
     @root_validator(pre=True)
     def set_weights(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if not values.get("weights"):

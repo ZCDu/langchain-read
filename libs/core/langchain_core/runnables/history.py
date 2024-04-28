@@ -35,6 +35,7 @@ MessagesOrDictWithMessages = Union[Sequence["BaseMessage"], Dict[str, Any]]
 GetSessionHistoryCallable = Callable[..., BaseChatMessageHistory]
 
 
+# NOTE: 增加历史信息的时候base用不了，所以加了一个这个History Runnbale做LCEL的封装
 class RunnableWithMessageHistory(RunnableBindingBase):
     """Runnable that manages chat message history for another Runnable.
 
@@ -298,6 +299,7 @@ class RunnableWithMessageHistory(RunnableBindingBase):
         history_chain: Runnable = RunnableLambda(
             self._enter_history, self._aenter_history
         ).with_config(run_name="load_history")
+        # NOTE: 根据设置的history_messages_key作为key，这样就和prompttemplate里的关键字对上了
         messages_key = history_messages_key or input_messages_key
         if messages_key:
             history_chain = RunnablePassthrough.assign(
@@ -475,6 +477,7 @@ class RunnableWithMessageHistory(RunnableBindingBase):
             message_history = self.get_session_history(
                 **{key: configurable[key] for key in expected_keys}
             )
+        # NOTE: 将history添加到了configurable配置中
         config["configurable"]["message_history"] = message_history
         return config
 

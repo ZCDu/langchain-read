@@ -16,6 +16,7 @@ from langchain_core.load.serializable import Serializable
 from langchain_core.runnables import run_in_executor
 
 
+# NOTE: langchian中基础的Memory类，想要实现一个自定义高阶的Memory就需要重写这里的方法
 class BaseMemory(Serializable, ABC):
     """Abstract base class for memory in Chains.
 
