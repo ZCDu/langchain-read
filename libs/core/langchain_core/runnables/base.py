@@ -4059,6 +4059,7 @@ class RunnableBindingBase(RunnableSerializable[Input, Output]):
         """Get the namespace of the langchain object."""
         return ["langchain", "schema", "runnable"]
 
+    # NOTE: 这儿给我的感觉就是配置信息的重组，没有设计到重要的操作
     def _merge_configs(self, *configs: Optional[RunnableConfig]) -> RunnableConfig:
         config = merge_configs(self.config, *configs)
         return merge_configs(config, *(f(config) for f in self.config_factories))
@@ -4069,7 +4070,7 @@ class RunnableBindingBase(RunnableSerializable[Input, Output]):
         config: Optional[RunnableConfig] = None,
         **kwargs: Optional[Any],
     ) -> Output:
-        # FIX: 所以回到了各个LCEL元素部分的invoke去执行？
+        # NOTE: bound在RunnableWithMessageHistory的初始化阶段定义, 就是一个LCEL chain
         return self.bound.invoke(
             input,
             self._merge_configs(config),

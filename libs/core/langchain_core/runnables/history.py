@@ -301,10 +301,15 @@ class RunnableWithMessageHistory(RunnableBindingBase):
         ).with_config(run_name="load_history")
         # NOTE: 根据设置的history_messages_key作为key，这样就和prompttemplate里的关键字对上了
         messages_key = history_messages_key or input_messages_key
+        # NOTE: 这里给我的感觉就是直接将信息注入到prompt中
         if messages_key:
             history_chain = RunnablePassthrough.assign(
                 **{messages_key: history_chain}
             ).with_config(run_name="insert_history")
+        # NOTE: hisotry方式执行的时候，调用的也是LCEL的语法，bound的位置在这儿
+        # 可以发现，构建的时候history_chain的位置被添加到了prompt | model之前->chain=history_chain | prompt | model
+        # history_chain执行的是_enter_history或_aenter_history, 在执行prompt｜model之前先将hisotry信息加载到promopt中
+        # 最后这个with_listeners这个应该就是定义的结束之后需要进行的操作, 调用_exit_history方法实现历史信息的加载
         bound = (
             history_chain | runnable.with_listeners(on_end=self._exit_history)
         ).with_config(run_name="RunnableWithMessageHistory")
@@ -312,6 +317,7 @@ class RunnableWithMessageHistory(RunnableBindingBase):
         if history_factory_config:
             _config_specs = history_factory_config
         else:
+            # NOTE: 默认会进行会话空间的配置，也可以依据LCEL语法页面传入
             # If not provided, then we'll use the default session_id field
             _config_specs = [
                 ConfigurableFieldSpec(
@@ -366,6 +372,7 @@ class RunnableWithMessageHistory(RunnableBindingBase):
         else:
             return super_schema
 
+    # NOTE: 完成信息的封装
     def _get_input_messages(
         self, input_val: Union[str, BaseMessage, Sequence[BaseMessage]]
     ) -> List[BaseMessage]:
@@ -421,23 +428,28 @@ class RunnableWithMessageHistory(RunnableBindingBase):
     ) -> List[BaseMessage]:
         return await run_in_executor(config, self._enter_history, input, config)
 
+    # HACK: 感觉对历史信息的处理改这儿就完事了
     def _exit_history(self, run: Run, config: RunnableConfig) -> None:
         hist: BaseChatMessageHistory = config["configurable"]["message_history"]
 
         # Get the input messages
         inputs = load(run.inputs)
+        # NOTE: 需要指定input_messages_key关键字，不然默认就是input
         input_val = inputs[self.input_messages_key or "input"]
         input_messages = self._get_input_messages(input_val)
 
         # If historic messages were prepended to the input messages, remove them to
         # avoid adding duplicate messages to history.
         if not self.history_messages_key:
+            # NOTE: hisotry存储历史信息的关键字就是messages
             historic_messages = config["configurable"]["message_history"].messages
             input_messages = input_messages[len(historic_messages) :]
 
         # Get the output messages
+        # NOTE: 从这儿可以看出，chain执行的输出关键字是outputs
         output_val = load(run.outputs)
         output_messages = self._get_output_messages(output_val)
+        # NOTE: 完成了历史信息的更新操作   
         hist.add_messages(input_messages + output_messages)
 
     def _merge_configs(self, *configs: Optional[RunnableConfig]) -> RunnableConfig:
