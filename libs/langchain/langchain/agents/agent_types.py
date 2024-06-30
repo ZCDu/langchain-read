@@ -3,6 +3,7 @@ from enum import Enum
 
 from langchain_core._api import deprecated
 
+
 @deprecated(
     "0.1.0",
     alternative=(

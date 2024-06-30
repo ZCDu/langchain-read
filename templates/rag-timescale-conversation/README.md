@@ -42,7 +42,7 @@ add_routes(app, rag_timescale_conversation_chain, path="/rag-timescale_conversat
 
 (Optional) Let's now configure LangSmith.
 LangSmith will help us trace, monitor and debug LangChain applications.
-LangSmith is currently in private beta, you can sign up [here](https://smith.langchain.com/).
+You can sign up for LangSmith [here](https://smith.langchain.com/).
 If you don't have access, you can skip this section
 
 ```shell
@@ -77,4 +77,3 @@ See the `rag_conversation.ipynb` notebook for example usage.
 
 To load your own dataset you will have to create a `load_dataset` function. You can see an example, in the
 `load_ts_git_dataset` function defined in the `load_sample_dataset.py` file. You can then run this as a
-standalone function (e.g. in a bash script) or add it to chain.py (but then you should run it just once).

@@ -33,3 +33,9 @@ class ChatMessageHistory(BaseChatMessageHistory, BaseModel):
 
     async def aclear(self) -> None:
         self.clear()
+# NOTE: 新版的ChatMessageHistory位置发生了变化
+from langchain_core.chat_history import InMemoryChatMessageHistory as ChatMessageHistory
+
+__all__ = [
+    "ChatMessageHistory",
+]

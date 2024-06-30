@@ -333,7 +333,7 @@ class WatsonxLLM(BaseLLM):
         Example:
             .. code-block:: python
 
-                response = watsonx_llm("What is a molecule")
+                response = watsonx_llm.invoke("What is a molecule")
         """
         result = self._generate(
             prompts=[prompt], stop=stop, run_manager=run_manager, **kwargs
@@ -419,3 +419,10 @@ class WatsonxLLM(BaseLLM):
             if run_manager:
                 run_manager.on_llm_new_token(chunk.text, chunk=chunk)
             yield chunk
+
+    def get_num_tokens(self, text: str) -> int:
+        response = self.watsonx_model.tokenize(text, return_tokens=False)
+        return response["result"]["token_count"]
+
+    def get_token_ids(self, text: str) -> List[int]:
+        raise NotImplementedError("API does not support returning token ids.")

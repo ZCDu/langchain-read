@@ -16,7 +16,6 @@ from langchain.memory.prompt import SUMMARY_PROMPT
 class SummarizerMixin(BaseModel):
     """Mixin for summarizer."""
 
-    # NOTE: 设置前缀, 主要的history中配置的前缀主要为Human和AI
     human_prefix: str = "Human"
     ai_prefix: str = "AI"
     llm: BaseLanguageModel

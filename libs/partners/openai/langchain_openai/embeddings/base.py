@@ -44,16 +44,15 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
     environment variable ``OPENAI_API_KEY`` set with your API key or pass it
     as a named parameter to the constructor.
 
+    In order to use the library with Microsoft Azure endpoints, use
+    AzureOpenAIEmbeddings.
+
     Example:
         .. code-block:: python
 
             from langchain_openai import OpenAIEmbeddings
 
-            openai = OpenAIEmbeddings(model="text-embedding-3-large")
-
-    In order to use the library with Microsoft Azure endpoints, use
-        AzureOpenAIEmbeddings.
-
+            model = OpenAIEmbeddings(model="text-embedding-3-large")
     """
 
     client: Any = Field(default=None, exclude=True)  #: :meta private:
@@ -124,7 +123,15 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
     retry_max_seconds: int = 20
     """Max number of seconds to wait between retries"""
     http_client: Union[Any, None] = None
-    """Optional httpx.Client."""
+    """Optional httpx.Client. Only used for sync invocations. Must specify 
+        http_async_client as well if you'd like a custom client for async invocations.
+    """
+    http_async_client: Union[Any, None] = None
+    """Optional httpx.AsyncClient. Only used for async invocations. Must specify 
+        http_client as well if you'd like a custom client for sync invocations."""
+    check_embedding_ctx_length: bool = True
+    """Whether to check the token length of inputs and automatically split inputs 
+        longer than embedding_ctx_length."""
 
     class Config:
         """Configuration for this pydantic object."""
@@ -219,12 +226,17 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
             "max_retries": values["max_retries"],
             "default_headers": values["default_headers"],
             "default_query": values["default_query"],
-            "http_client": values["http_client"],
         }
         if not values.get("client"):
-            values["client"] = openai.OpenAI(**client_params).embeddings
+            sync_specific = {"http_client": values["http_client"]}
+            values["client"] = openai.OpenAI(
+                **client_params, **sync_specific
+            ).embeddings
         if not values.get("async_client"):
-            values["async_client"] = openai.AsyncOpenAI(**client_params).embeddings
+            async_specific = {"http_client": values["http_async_client"]}
+            values["async_client"] = openai.AsyncOpenAI(
+                **client_params, **async_specific
+            ).embeddings
         return values
 
     @property
@@ -502,6 +514,18 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
         Returns:
             List of embeddings, one for each text.
         """
+        if not self.check_embedding_ctx_length:
+            embeddings: List[List[float]] = []
+            for text in texts:
+                response = self.client.create(
+                    input=text,
+                    **self._invocation_params,
+                )
+                if not isinstance(response, dict):
+                    response = response.dict()
+                embeddings.extend(r["embedding"] for r in response["data"])
+            return embeddings
+
         # NOTE: to keep things simple, we assume the list may contain texts longer
         #       than the maximum context and use length-safe embedding function.
         engine = cast(str, self.deployment)
@@ -520,6 +544,18 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
         Returns:
             List of embeddings, one for each text.
         """
+        if not self.check_embedding_ctx_length:
+            embeddings: List[List[float]] = []
+            for text in texts:
+                response = await self.async_client.create(
+                    input=text,
+                    **self._invocation_params,
+                )
+                if not isinstance(response, dict):
+                    response = response.dict()
+                embeddings.extend(r["embedding"] for r in response["data"])
+            return embeddings
+
         # NOTE: to keep things simple, we assume the list may contain texts longer
         #       than the maximum context and use length-safe embedding function.
         engine = cast(str, self.deployment)

@@ -1,5 +1,6 @@
 # flake8: noqa
 
+# NOTE: 这儿有openai的提示词！！！
 OPENAPI_PREFIX = """You are an agent designed to answer questions by making web requests to an API given the openapi spec.
 
 If the question does not seem related to the API, return I don't know. Do not make up an answer.
@@ -19,7 +20,7 @@ If you get a not found error, ensure that you are using a path that actually exi
 OPENAPI_SUFFIX = """Begin!
 
 Question: {input}
-Thought: I should explore the spec to find the base url for the API.
+Thought: I should explore the spec to find the base server url for the API in the servers node.
 {agent_scratchpad}"""
 
 DESCRIPTION = """Can be used to answer questions about the openapi spec for the API. Always use this tool before trying to make a request. 

@@ -345,6 +345,14 @@ class RunnableAgent(BaseSingleActionAgent):
     """Runnable to call to get agent action."""
     input_keys_arg: List[str] = []
     return_keys_arg: List[str] = []
+    stream_runnable: bool = True
+    """Whether to stream from the runnable or not. 
+
+    If True then underlying LLM is invoked in a streaming fashion to make it possible 
+        to get access to the individual LLM tokens when using stream_log with the Agent 
+        Executor. If False then LLM is invoked in a non-streaming fashion and 
+        individual LLM tokens will not be available in stream_log.
+    """
 
     class Config:
         """Configuration for this pydantic object."""
@@ -378,17 +386,21 @@ class RunnableAgent(BaseSingleActionAgent):
             Action specifying what tool to use.
         """
         inputs = {**kwargs, **{"intermediate_steps": intermediate_steps}}
-        # Use streaming to make sure that the underlying LLM is invoked in a streaming
-        # fashion to make it possible to get access to the individual LLM tokens
-        # when using stream_log with the Agent Executor.
-        # Because the response from the plan is not a generator, we need to
-        # accumulate the output into final output and return that.
         final_output: Any = None
-        for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
-            if final_output is None:
-                final_output = chunk
-            else:
-                final_output += chunk
+        if self.stream_runnable:
+            # Use streaming to make sure that the underlying LLM is invoked in a
+            # streaming
+            # fashion to make it possible to get access to the individual LLM tokens
+            # when using stream_log with the Agent Executor.
+            # Because the response from the plan is not a generator, we need to
+            # accumulate the output into final output and return that.
+            for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+                if final_output is None:
+                    final_output = chunk
+                else:
+                    final_output += chunk
+        else:
+            final_output = self.runnable.invoke(inputs, config={"callbacks": callbacks})
 
         return final_output
 
@@ -414,18 +426,24 @@ class RunnableAgent(BaseSingleActionAgent):
         """
         inputs = {**kwargs, **{"intermediate_steps": intermediate_steps}}
         final_output: Any = None
-        # Use streaming to make sure that the underlying LLM is invoked in a streaming
-        # fashion to make it possible to get access to the individual LLM tokens
-        # when using stream_log with the Agent Executor.
-        # Because the response from the plan is not a generator, we need to
-        # accumulate the output into final output and return that.
-        async for chunk in self.runnable.astream(
-            inputs, config={"callbacks": callbacks}
-        ):
-            if final_output is None:
-                final_output = chunk
-            else:
-                final_output += chunk
+        if self.stream_runnable:
+            # Use streaming to make sure that the underlying LLM is invoked in a
+            # streaming
+            # fashion to make it possible to get access to the individual LLM tokens
+            # when using stream_log with the Agent Executor.
+            # Because the response from the plan is not a generator, we need to
+            # accumulate the output into final output and return that.
+            async for chunk in self.runnable.astream(
+                inputs, config={"callbacks": callbacks}
+            ):
+                if final_output is None:
+                    final_output = chunk
+                else:
+                    final_output += chunk
+        else:
+            final_output = await self.runnable.ainvoke(
+                inputs, config={"callbacks": callbacks}
+            )
         return final_output
 
 
@@ -436,6 +454,14 @@ class RunnableMultiActionAgent(BaseMultiActionAgent):
     """Runnable to call to get agent actions."""
     input_keys_arg: List[str] = []
     return_keys_arg: List[str] = []
+    stream_runnable: bool = True
+    """Whether to stream from the runnable or not. 
+    
+    If True then underlying LLM is invoked in a streaming fashion to make it possible 
+        to get access to the individual LLM tokens when using stream_log with the Agent 
+        Executor. If False then LLM is invoked in a non-streaming fashion and 
+        individual LLM tokens will not be available in stream_log.
+    """
 
     class Config:
         """Configuration for this pydantic object."""
@@ -477,17 +503,21 @@ class RunnableMultiActionAgent(BaseMultiActionAgent):
             Action specifying what tool to use.
         """
         inputs = {**kwargs, **{"intermediate_steps": intermediate_steps}}
-        # Use streaming to make sure that the underlying LLM is invoked in a streaming
-        # fashion to make it possible to get access to the individual LLM tokens
-        # when using stream_log with the Agent Executor.
-        # Because the response from the plan is not a generator, we need to
-        # accumulate the output into final output and return that.
         final_output: Any = None
-        for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
-            if final_output is None:
-                final_output = chunk
-            else:
-                final_output += chunk
+        if self.stream_runnable:
+            # Use streaming to make sure that the underlying LLM is invoked in a
+            # streaming
+            # fashion to make it possible to get access to the individual LLM tokens
+            # when using stream_log with the Agent Executor.
+            # Because the response from the plan is not a generator, we need to
+            # accumulate the output into final output and return that.
+            for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+                if final_output is None:
+                    final_output = chunk
+                else:
+                    final_output += chunk
+        else:
+            final_output = self.runnable.invoke(inputs, config={"callbacks": callbacks})
 
         return final_output
 
@@ -512,19 +542,25 @@ class RunnableMultiActionAgent(BaseMultiActionAgent):
             Action specifying what tool to use.
         """
         inputs = {**kwargs, **{"intermediate_steps": intermediate_steps}}
-        # Use streaming to make sure that the underlying LLM is invoked in a streaming
-        # fashion to make it possible to get access to the individual LLM tokens
-        # when using stream_log with the Agent Executor.
-        # Because the response from the plan is not a generator, we need to
-        # accumulate the output into final output and return that.
         final_output: Any = None
-        async for chunk in self.runnable.astream(
-            inputs, config={"callbacks": callbacks}
-        ):
-            if final_output is None:
-                final_output = chunk
-            else:
-                final_output += chunk
+        if self.stream_runnable:
+            # Use streaming to make sure that the underlying LLM is invoked in a
+            # streaming
+            # fashion to make it possible to get access to the individual LLM tokens
+            # when using stream_log with the Agent Executor.
+            # Because the response from the plan is not a generator, we need to
+            # accumulate the output into final output and return that.
+            async for chunk in self.runnable.astream(
+                inputs, config={"callbacks": callbacks}
+            ):
+                if final_output is None:
+                    final_output = chunk
+                else:
+                    final_output += chunk
+        else:
+            final_output = await self.runnable.ainvoke(
+                inputs, config={"callbacks": callbacks}
+            )
 
         return final_output
 
@@ -694,6 +730,7 @@ class Agent(BaseSingleActionAgent):
         full_inputs = self.get_full_inputs(intermediate_steps, **kwargs)
         # NOTE: 在plan中调用了大模型去进行推理
         full_output = self.llm_chain.predict(callbacks=callbacks, **full_inputs)
+        # NOTE: 通过output_parser封装了输出，从而是的输出是AgentAction或AgentFinish中的一个
         return self.output_parser.parse(full_output)
 
     async def aplan(
@@ -879,6 +916,8 @@ class ExceptionTool(BaseTool):
 NextStepOutput = List[Union[AgentFinish, AgentAction, AgentStep]]
 
 
+# NOTE: AgentExecutor的初始化AgentExecutor(agent=agent, tools=[search_article()], verbose=True)
+# 这里传入的agent是进行了bind_tools之后的, 也就是说后续传入的tool本质上就是一个可执行的tools，前面的agent部分则绑定了tool意图
 class AgentExecutor(Chain):
     """Agent that is using tools."""
 
@@ -980,10 +1019,15 @@ class AgentExecutor(Chain):
             else:
                 multi_action = output_type == Union[List[AgentAction], AgentFinish]
 
+            stream_runnable = values.pop("stream_runnable", True)
             if multi_action:
-                values["agent"] = RunnableMultiActionAgent(runnable=agent)
+                values["agent"] = RunnableMultiActionAgent(
+                    runnable=agent, stream_runnable=stream_runnable
+                )
             else:
-                values["agent"] = RunnableAgent(runnable=agent)
+                values["agent"] = RunnableAgent(
+                    runnable=agent, stream_runnable=stream_runnable
+                )
         return values
 
     def save(self, file_path: Union[Path, str]) -> None:
@@ -1077,6 +1121,7 @@ class AgentExecutor(Chain):
             final_output["intermediate_steps"] = intermediate_steps
         return final_output
 
+    # NOTE: 对处理结果进行封装
     def _consume_next_step(
         self, values: NextStepOutput
     ) -> Union[AgentFinish, List[Tuple[AgentAction, str]]]:
@@ -1125,7 +1170,8 @@ class AgentExecutor(Chain):
         try:
             intermediate_steps = self._prepare_intermediate_steps(intermediate_steps)
 
-            # NOTE: 回去调用ZeroShotAgent的plan函数
+            # NOTE: 回去调用ZeroShotAgent的plan函数, 调用LLM进行推理, 因为这里将agent封装在里里面，当然需要进行一次LLM的推理
+            # 去获取FN所需要的方法和参数
             # Call the LLM to see what to do.
             output = self.agent.plan(
                 intermediate_steps,
@@ -1172,6 +1218,7 @@ class AgentExecutor(Chain):
             return
 
         # If the tool chosen is the finishing tool, then we end and return.
+        # NOTE: yield将结果交给了上一曾进行判断，如果是AgentFinish，上一层也会判断一下，然后结束
         if isinstance(output, AgentFinish):
             yield output
             return
@@ -1181,18 +1228,20 @@ class AgentExecutor(Chain):
             actions = [output]
         else:
             actions = output
+        # NOTE: yield抛给上一层，由于不是终止，所以上一层会记录这个每一个agent可能的动作
         for agent_action in actions:
             yield agent_action
+        # NOTE: 和上一个同理，只是这儿是执行对应的action了，同样会被记录
         for agent_action in actions:
             yield self._perform_agent_action(
                 name_to_tool_map, color_mapping, agent_action, run_manager
             )
-
+    # FIX: 感觉改这个agent_action就完事了，只需要传递内容到这个上面我们就能执行
     def _perform_agent_action(
         self,
         name_to_tool_map: Dict[str, BaseTool],
         color_mapping: Dict[str, str],
-        agent_action: AgentAction,
+        agent_action: AgentAction, # AgentAction其实就是一个数据类，加了校验
         run_manager: Optional[CallbackManagerForChainRun] = None,
     ) -> AgentStep:
         if run_manager:
@@ -1207,8 +1256,8 @@ class AgentExecutor(Chain):
             if return_direct:
                 tool_run_kwargs["llm_prefix"] = ""
             # We then call the tool on the tool input to get an observation
-            # PERF: 这里才会调用工具类
-            # We then call the tool on the tool input to get an observation
+            # PERF: 这里才会调用工具类, 但是可以发现，这里调用的是tool.run，来自langchain_core.tools的BaseTool
+            # 当执行失败的时候，错误信息会被收集到observation里，然后循环给大模型,通过多轮对话进行补全
             observation = tool.run(
                 agent_action.tool_input,
                 verbose=self.verbose,
@@ -1216,6 +1265,7 @@ class AgentExecutor(Chain):
                 callbacks=run_manager.get_child() if run_manager else None,
                 **tool_run_kwargs,
             )
+        # NOTE: 工具识别失败的时候也有对应的处理方案
         else:
             tool_run_kwargs = self.agent.tool_run_logging_kwargs()
             observation = InvalidTool().run(
@@ -1399,10 +1449,8 @@ class AgentExecutor(Chain):
         start_time = time.time()
         # We now enter the agent loop (until it returns something).
         # PERF: 循环调用，通过中间的一个状态去找对应的tool agent，
-        # 直到有终结符或者到达循环最大值就停止, 
+        # 直到有终结符或者到达循环最大值就停止
         while self._should_continue(iterations, time_elapsed):
-            # next_step_output:Union[AgentFinish, List[Tuple[AgentAction, str]]]
-            # NOTE: 在这里肯定是先进行了工具的调用，然后依据工具返回的结果开始调用大模型
             next_step_output = self._take_next_step(
                 name_to_tool_map,
                 color_mapping,
@@ -1410,6 +1458,7 @@ class AgentExecutor(Chain):
                 intermediate_steps,
                 run_manager=run_manager,
             )
+            # NOTE: 通过结束标识符判断结束
             if isinstance(next_step_output, AgentFinish):
                 return self._return(
                     next_step_output, intermediate_steps, run_manager=run_manager

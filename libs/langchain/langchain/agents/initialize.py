@@ -11,7 +11,8 @@ from langchain.agents.agent_types import AgentType
 from langchain.agents.loading import AGENT_TO_CLASS, load_agent
 
 
-@deprecated( "0.1.0",
+@deprecated(
+    "0.1.0",
     alternative=(
         "Use new agent constructor methods like create_react_agent, create_json_agent, "
         "create_structured_chat_agent, etc."

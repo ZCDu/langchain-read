@@ -186,7 +186,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
         include_run_info = kwargs.get("include_run_info", False)
         return_only_outputs = kwargs.get("return_only_outputs", False)
 
-        inputs = self.prep_inputs(input)
+        inputs = await self.aprep_inputs(input)
         callback_manager = AsyncCallbackManager.configure(
             callbacks,
             self.callbacks,
@@ -209,7 +209,7 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
                 if new_arg_supported
                 else await self._acall(inputs)
             )
-            final_outputs: Dict[str, Any] = self.prep_outputs(
+            final_outputs: Dict[str, Any] = await self.aprep_outputs(
                 inputs, outputs, return_only_outputs
             )
         except BaseException as e:
@@ -465,6 +465,32 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
         else:
             return {**inputs, **outputs}
 
+    async def aprep_outputs(
+        self,
+        inputs: Dict[str, str],
+        outputs: Dict[str, str],
+        return_only_outputs: bool = False,
+    ) -> Dict[str, str]:
+        """Validate and prepare chain outputs, and save info about this run to memory.
+
+        Args:
+            inputs: Dictionary of chain inputs, including any inputs added by chain
+                memory.
+            outputs: Dictionary of initial chain outputs.
+            return_only_outputs: Whether to only return the chain outputs. If False,
+                inputs are also added to the final outputs.
+
+        Returns:
+            A dict of the final chain outputs.
+        """
+        self._validate_outputs(outputs)
+        if self.memory is not None:
+            await self.memory.asave_context(inputs, outputs)
+        if return_only_outputs:
+            return outputs
+        else:
+            return {**inputs, **outputs}
+
     def prep_inputs(self, inputs: Union[Dict[str, Any], Any]) -> Dict[str, str]:
         """Prepare chain inputs, including adding inputs from memory.
 
@@ -487,7 +513,32 @@ class Chain(RunnableSerializable[Dict[str, Any], Dict[str, Any]], ABC):
             inputs = {list(_input_keys)[0]: inputs}
         # NOTE: 将memory中的内容加载到LLM的input中
         if self.memory is not None:
+            # NOTE: memory返回的是一个dict, {history的关键字：内容}
             external_context = self.memory.load_memory_variables(inputs)
+            inputs = dict(inputs, **external_context)
+        return inputs
+
+    async def aprep_inputs(self, inputs: Union[Dict[str, Any], Any]) -> Dict[str, str]:
+        """Prepare chain inputs, including adding inputs from memory.
+
+        Args:
+            inputs: Dictionary of raw inputs, or single input if chain expects
+                only one param. Should contain all inputs specified in
+                `Chain.input_keys` except for inputs that will be set by the chain's
+                memory.
+
+        Returns:
+            A dictionary of all inputs, including those added by the chain's memory.
+        """
+        if not isinstance(inputs, dict):
+            _input_keys = set(self.input_keys)
+            if self.memory is not None:
+                # If there are multiple input keys, but some get set by memory so that
+                # only one is not set, we can still figure out which key it is.
+                _input_keys = _input_keys.difference(self.memory.memory_variables)
+            inputs = {list(_input_keys)[0]: inputs}
+        if self.memory is not None:
+            external_context = await self.memory.aload_memory_variables(inputs)
             inputs = dict(inputs, **external_context)
         return inputs
 

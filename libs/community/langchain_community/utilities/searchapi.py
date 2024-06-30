@@ -41,6 +41,7 @@ class SearchApiAPIWrapper(BaseModel):
         values["searchapi_api_key"] = searchapi_api_key
         return values
 
+    # NOTE: SearchAPi的执行入口
     def run(self, query: str, **kwargs: Any) -> str:
         results = self.results(query, **kwargs)
         return self._result_as_string(results)
@@ -70,6 +71,7 @@ class SearchApiAPIWrapper(BaseModel):
             },
         }
 
+    # NOTE: 可以发现，这个SearchApi发送的是api请求
     def _search_api_results(self, query: str, **kwargs: Any) -> dict:
         request_details = self._prepare_request(query, **kwargs)
         response = requests.get(

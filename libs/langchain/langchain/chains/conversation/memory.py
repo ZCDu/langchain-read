@@ -1,6 +1,5 @@
 """Memory modules for conversation prompts."""
 
-# NOTE: langchain.chains.conversation.memory只是定义了各类memory的载入位置， 起到一个定位的作用
 from langchain.memory.buffer import (
     ConversationBufferMemory,
     ConversationStringBufferMemory,

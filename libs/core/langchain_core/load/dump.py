@@ -13,6 +13,7 @@ def default(obj: Any) -> Any:
         return to_json_not_implemented(obj)
 
 
+# NOTE: 返回一个json格式的对象
 def dumps(obj: Any, *, pretty: bool = False, **kwargs: Any) -> str:
     """Return a json string representation of an object."""
     if "default" in kwargs:

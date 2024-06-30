@@ -67,7 +67,7 @@ def _import_tiktoken() -> Any:
     try:
         import tiktoken
     except ImportError:
-        raise ValueError(
+        raise ImportError(
             "Could not import tiktoken python package. "
             "This is needed in order to calculate get_token_ids. "
             "Please install it with `pip install tiktoken`."
@@ -160,7 +160,7 @@ class ChatOpenAI(BaseChatModel):
         .. code-block:: python
 
             from langchain_community.chat_models import ChatOpenAI
-            openai = ChatOpenAI(model_name="gpt-3.5-turbo")
+            openai = ChatOpenAI(model="gpt-3.5-turbo")
     """
 
     @property
@@ -665,6 +665,7 @@ class ChatOpenAI(BaseChatModel):
             kwargs: Any additional parameters to pass to the
                 :class:`~langchain.runnable.Runnable` constructor.
         """
+        # NOTE: 最终还是导航到了core.utils.function_calling, 转化为json的那种形式
         from langchain.chains.openai_functions.base import convert_to_openai_function
 
         formatted_functions = [convert_to_openai_function(fn) for fn in functions]

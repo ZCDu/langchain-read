@@ -21,13 +21,10 @@ from langchain_core.stores import BaseStore
 V = TypeVar("V")
 
 
-<<<<<<< Updated upstream
-class InMemoryBaseStore(BaseStore[str, V], Generic[V]):
-=======
+
 # NOTE: 使用字典来存放数据，这里并没有考虑持久化操作, 所以m开头的操作只是做了一个封装
 # 其实就是get，set等的操作
-class InMemoryStore(BaseStore[str, Any]):
->>>>>>> Stashed changes
+class InMemoryBaseStore(BaseStore[str, V], Generic[V]):
     """In-memory implementation of the BaseStore using a dictionary.
 
     Attributes:
@@ -55,12 +52,8 @@ class InMemoryStore(BaseStore[str, Any]):
         """Initialize an empty store."""
         self.store: Dict[str, V] = {}
 
-<<<<<<< Updated upstream
-    def mget(self, keys: Sequence[str]) -> List[Optional[V]]:
-=======
     # NOTE: 就是从字典中获取对应key的内容
-    def mget(self, keys: Sequence[str]) -> List[Optional[Any]]:
->>>>>>> Stashed changes
+    def mget(self, keys: Sequence[str]) -> List[Optional[V]]:
         """Get the values associated with the given keys.
 
         Args:
@@ -72,7 +65,6 @@ class InMemoryStore(BaseStore[str, Any]):
         """
         return [self.store.get(key) for key in keys]
 
-<<<<<<< Updated upstream
     async def amget(self, keys: Sequence[str]) -> List[Optional[V]]:
         """Get the values associated with the given keys.
 
@@ -84,12 +76,8 @@ class InMemoryStore(BaseStore[str, Any]):
             If a key is not found, the corresponding value will be None.
         """
         return self.mget(keys)
-
-    def mset(self, key_value_pairs: Sequence[Tuple[str, V]]) -> None:
-=======
     # NOTE: mset只是单纯的字典构建
-    def mset(self, key_value_pairs: Sequence[Tuple[str, Any]]) -> None:
->>>>>>> Stashed changes
+    def mset(self, key_value_pairs: Sequence[Tuple[str, V]]) -> None:
         """Set the values for the given keys.
 
         Args:

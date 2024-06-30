@@ -8,7 +8,6 @@ from langchain_core.tools import (
     tool,
 )
 
-<<<<<<< Updated upstream
 __all__ = [
     "SchemaAnnotationError",
     "create_schema_from_function",
@@ -18,7 +17,6 @@ __all__ = [
     "StructuredTool",
     "tool",
 ]
-=======
 
 class SchemaAnnotationError(TypeError):
     """Raised when 'args_schema' is missing or has an incorrect type annotation."""
@@ -185,6 +183,7 @@ class ChildTool(BaseTool):
         if self.args_schema is not None:
             return self.args_schema
         else:
+            # NOTE: 当没有配置args_schema的时候，去注释里获取参数列表
             return create_schema_from_function(self.name, self._run)
 
     def invoke(
@@ -299,6 +298,7 @@ class ChildTool(BaseTool):
         **kwargs: Any,
     ) -> Any:
         """Run the tool."""
+        # NOTE: BaseTool的run做了限制，只能从tool_input里获取参数，应该是这里导致的只能无法手动添加参数
         parsed_input = self._parse_input(tool_input)
         if not self.verbose and verbose is not None:
             verbose_ = verbose
@@ -835,4 +835,4 @@ def tool(
         return _partial
     else:
         raise ValueError("Too many arguments for tool decorator")
->>>>>>> Stashed changes
+

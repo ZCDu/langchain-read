@@ -1,8 +1,11 @@
+import warnings
 from abc import ABC
 from typing import Any, Dict, Optional, Tuple
 
-from langchain_community.chat_message_histories.in_memory import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.chat_history import (
+    BaseChatMessageHistory,
+    InMemoryChatMessageHistory,
+)
 from langchain_core.memory import BaseMemory
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.pydantic_v1 import Field
@@ -13,7 +16,10 @@ from langchain.memory.utils import get_prompt_input_key
 class BaseChatMemory(BaseMemory, ABC):
     """Abstract base class for chat memory."""
 
-    chat_memory: BaseChatMessageHistory = Field(default_factory=ChatMessageHistory)
+    # NOTE: Memory的底层使用和langchain中的是相同的，都是BaseChatMessageHistory系列
+    chat_memory: BaseChatMessageHistory = Field(
+        default_factory=InMemoryChatMessageHistory
+    )
     output_key: Optional[str] = None
     input_key: Optional[str] = None
     return_messages: bool = False
@@ -26,18 +32,29 @@ class BaseChatMemory(BaseMemory, ABC):
         else:
             prompt_input_key = self.input_key
         if self.output_key is None:
-            if len(outputs) != 1:
-                raise ValueError(f"One output key expected, got {outputs.keys()}")
-            output_key = list(outputs.keys())[0]
+            if len(outputs) == 1:
+                output_key = list(outputs.keys())[0]
+            elif "output" in outputs:
+                output_key = "output"
+                warnings.warn(
+                    f"'{self.__class__.__name__}' got multiple output keys:"
+                    f" {outputs.keys()}. The default 'output' key is being used."
+                    f" If this is not desired, please manually set 'output_key'."
+                )
+            else:
+                raise ValueError(
+                    f"Got multiple output keys: {outputs.keys()}, cannot "
+                    f"determine which to store in memory. Please set the "
+                    f"'output_key' explicitly."
+                )
         else:
             output_key = self.output_key
         return inputs[prompt_input_key], outputs[output_key]
 
-    # NOTE: 在LLMchain结束的时候，会调用save_context将对话内容保存起来
+    # NOTE: 在LLMchain结束的时候，会调用save_context将对话内容保存起来, 使用对应的Message类别对输入和输出的内容进行封装
     def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
         """Save context from this conversation to buffer."""
         input_str, output_str = self._get_input_output(inputs, outputs)
-        # NOTE: 这里用的是格式化的存储方式
         self.chat_memory.add_messages(
             [HumanMessage(content=input_str), AIMessage(content=output_str)]
         )

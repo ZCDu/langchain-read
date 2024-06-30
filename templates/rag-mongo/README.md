@@ -49,7 +49,7 @@ add_routes(app, rag_mongo_ingest, path="/rag-mongo-ingest")
 
 (Optional) Let's now configure LangSmith. 
 LangSmith will help us trace, monitor and debug LangChain applications. 
-LangSmith is currently in private beta, you can sign up [here](https://smith.langchain.com/). 
+You can sign up for LangSmith [here](https://smith.langchain.com/). 
 If you don't have access, you can skip this section
 
 
@@ -167,4 +167,3 @@ And we will paste the following JSON in:
 ```
 ![Screenshot of the JSON configuration for a search index in MongoDB Atlas.](_images/json.png "MongoDB Atlas Search Index JSON Configuration")
 
-From there, hit "Next" and then "Create Search Index". It will take a little bit but you should then have an index over your data!

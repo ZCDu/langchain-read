@@ -1,9 +1,22 @@
 """
-Ensemble retriever that ensemble the results of 
+Ensemble retriever that ensemble the results of
 multiple retrievers by using weighted  Reciprocal Rank Fusion
 """
 import asyncio
-from typing import Any, Dict, List, Optional, cast
+from collections import defaultdict
+from collections.abc import Hashable
+from itertools import chain
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    TypeVar,
+    cast,
+)
 
 from langchain_core.callbacks import (
     AsyncCallbackManagerForRetrieverRun,
@@ -19,6 +32,26 @@ from langchain_core.runnables.utils import (
     ConfigurableFieldSpec,
     get_unique_config_specs,
 )
+
+T = TypeVar("T")
+H = TypeVar("H", bound=Hashable)
+
+
+def unique_by_key(iterable: Iterable[T], key: Callable[[T], H]) -> Iterator[T]:
+    """Yield unique elements of an iterable based on a key function.
+
+    Args:
+        iterable: The iterable to filter.
+        key: A function that returns a hashable key for each element.
+
+    Yields:
+        Unique elements of the iterable based on the key function.
+    """
+    seen = set()
+    for e in iterable:
+        if (k := key(e)) not in seen:
+            seen.add(k)
+            yield e
 
 
 class EnsembleRetriever(BaseRetriever):
@@ -242,7 +275,7 @@ class EnsembleRetriever(BaseRetriever):
         # Enforce that retrieved docs are Documents for each list in retriever_docs
         for i in range(len(retriever_docs)):
             retriever_docs[i] = [
-                Document(page_content=doc) if not isinstance(doc, Document) else doc
+                Document(page_content=doc) if not isinstance(doc, Document) else doc  # type: ignore[arg-type]
                 for doc in retriever_docs[i]
             ]
 

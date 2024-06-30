@@ -71,7 +71,7 @@ add_routes(app, rag_timescale_hybrid_search_chain, path="/rag-timescale-hybrid-s
 
 (Optional) Let's now configure LangSmith.
 LangSmith will help us trace, monitor and debug LangChain applications.
-LangSmith is currently in private beta, you can sign up [here](https://smith.langchain.com/).
+You can sign up for LangSmith [here](https://smith.langchain.com/).
 If you don't have access, you can skip this section
 
 ```shell
@@ -105,4 +105,3 @@ runnable = RemoteRunnable("http://localhost:8000/rag-timescale-hybrid-search")
 To load your own dataset you will have to modify the code in the `DATASET SPECIFIC CODE` section of `chain.py`.
 This code defines the name of the collection, how to load the data, and the human-language description of both the
 contents of the collection and all of the metadata. The human-language descriptions are used by the self-query retriever
-to help the LLM convert the question into filters on the metadata when searching the data in Timescale-vector.

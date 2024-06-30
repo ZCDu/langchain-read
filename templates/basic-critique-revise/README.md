@@ -35,7 +35,7 @@ add_routes(app, basic_critique_revise_chain, path="/basic-critique-revise")
 
 (Optional) Let's now configure LangSmith. 
 LangSmith will help us trace, monitor and debug LangChain applications. 
-LangSmith is currently in private beta, you can sign up [here](https://smith.langchain.com/). 
+You can sign up for LangSmith [here](https://smith.langchain.com/). 
 If you don't have access, you can skip this section
 
 
@@ -63,4 +63,3 @@ We can access the template from code with:
 from langserve.client import RemoteRunnable
 
 runnable = RemoteRunnable("http://localhost:8000/basic-critique-revise")
-```

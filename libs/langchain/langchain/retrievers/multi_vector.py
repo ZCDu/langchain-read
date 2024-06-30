@@ -30,12 +30,8 @@ class MultiVectorRetriever(BaseRetriever):
     vectorstore: VectorStore
     """The underlying vectorstore to use to store small chunks
     and their embedding vectors"""
-<<<<<<< Updated upstream
     byte_store: Optional[ByteStore] = None
     """The lower-level backing storage layer for the parent documents"""
-=======
-    # TODO: 需要了解一下，如何完成VS和文档的对应
->>>>>>> Stashed changes
     docstore: BaseStore[str, Document]
     """The storage interface for the parent documents"""
     id_key: str = "doc_id"

@@ -14,11 +14,13 @@ from langchain_core.pydantic_v1 import Extra
 from langchain.chains.base import Chain
 
 
+# NOTE: RouterChain的返回形式
 class Route(NamedTuple):
     destination: Optional[str]
     next_inputs: Dict[str, Any]
 
 
+# NOTE: 基础的意图识别Chain
 class RouterChain(Chain, ABC):
     """Chain that outputs the name of a destination chain and the inputs to it."""
 
@@ -47,6 +49,7 @@ class RouterChain(Chain, ABC):
         return Route(result["destination"], result["next_inputs"])
 
 
+# NOTE: MultiRouteChain封装了意图和下一步的chain，没有必要
 class MultiRouteChain(Chain):
     """Use a single chain to route an input to one of multiple candidate chains."""
 

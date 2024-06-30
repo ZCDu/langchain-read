@@ -5,6 +5,8 @@ from langchain.agents.agent import AgentExecutor
 from langchain.agents.mrkl.base import ZeroShotAgent
 from langchain.callbacks.base import BaseCallbackManager
 from langchain.chains.llm import LLMChain
+from langchain.chains.llm import LLMChain
+from langchain_core.callbacks.base import BaseCallbackManager
 from langchain_core.language_models import BaseLLM
 
 from langchain_experimental.agents.agent_toolkits.xorbits.prompt import (
