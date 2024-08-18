@@ -27,6 +27,8 @@ class AIMessage(BaseMessage):
         conversation.
     """
 
+    # NOTE: AIMessage中有tool_calls字段, 笑死，虽然langchain给大家考虑了这个，但是
+    # Qwen输出的形式是additional_kwargs.function_call，嵌套在了BaseMessage的additional_kwargs字段里，这个参数就显得多此一举
     tool_calls: List[ToolCall] = []
     """If provided, tool calls associated with the message."""
     invalid_tool_calls: List[InvalidToolCall] = []

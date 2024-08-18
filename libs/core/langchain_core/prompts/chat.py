@@ -721,6 +721,7 @@ class ChatPromptTemplate(BaseChatPromptTemplate):
                     "user_input": "What is your name?"
                 }
             )
+            # PERF: 将用户输入的简洁形式转换为Lanchain的Message封装形式
             # Output:
             # ChatPromptValue(
             #    messages=[
@@ -759,6 +760,7 @@ class ChatPromptTemplate(BaseChatPromptTemplate):
                 }
             )
 
+            # PERF: 这里的输出很重要，ChatPromptTemplate的输出是以Message的list存在的
             # Output:
             # ChatPromptValue(
             #    messages=[
@@ -1209,6 +1211,7 @@ def _convert_to_message(
     Returns:
         an instance of a message or a message template
     """
+    # NOTE: from_messages会调用该方法将('system', 'nihao')转换为SystemMessage的形式
     if isinstance(message, (BaseMessagePromptTemplate, BaseChatPromptTemplate)):
         _message: Union[
             BaseMessage, BaseMessagePromptTemplate, BaseChatPromptTemplate

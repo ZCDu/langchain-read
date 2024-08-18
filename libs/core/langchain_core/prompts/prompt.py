@@ -249,6 +249,7 @@ class PromptTemplate(StringPromptTemplate):
                 var for var in input_variables if var not in _partial_variables
             ]
 
+        # NOTE: 所以调用PromptTemplate.from_template生成的结果和PromptTemplate其实是一致的，只是简化了构建形式
         return cls(
             input_variables=input_variables,
             template=template,

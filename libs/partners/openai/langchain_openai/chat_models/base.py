@@ -337,6 +337,7 @@ class ChatOpenAI(BaseChatModel):
         """Return whether this model can be serialized by Langchain."""
         return True
 
+    # NOTE: ChatOpenAI申明的字段里是没function calling的，但是他提供了bind_tools来实现这个字段
     client: Any = Field(default=None, exclude=True)  #: :meta private:
     async_client: Any = Field(default=None, exclude=True)  #: :meta private:
     model_name: str = Field(default="gpt-3.5-turbo", alias="model")
@@ -550,6 +551,8 @@ class ChatOpenAI(BaseChatModel):
                     )
                 yield chunk
 
+    # NOTE: 行内的Qwen类封装和这个最大的区别就是那个加入了function变量作为参数
+    # HACK: 从这里可以看出来虽然输入里没有显示出现tools的变量，因为不需要在这里做变量，直接传递给后端大模型即可
     def _generate(
         self,
         messages: List[BaseMessage],
@@ -563,6 +566,7 @@ class ChatOpenAI(BaseChatModel):
             )
             return generate_from_stream(stream_iter)
         message_dicts, params = self._create_message_dicts(messages, stop)
+        # HACK: 在params字典里手动加入了名为function的变量和对应的json值，然后传递给大模型
         params = {**params, **kwargs}
         response = self.client.create(messages=message_dicts, **params)
         return self._create_chat_result(response)
@@ -575,6 +579,7 @@ class ChatOpenAI(BaseChatModel):
             if "stop" in params:
                 raise ValueError("`stop` found in both the input and default params.")
             params["stop"] = stop
+        # NOTE: 将message转换为role content的方式
         message_dicts = [_convert_message_to_dict(m) for m in messages]
         return message_dicts, params
 
