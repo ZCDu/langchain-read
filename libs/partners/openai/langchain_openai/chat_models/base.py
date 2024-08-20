@@ -395,6 +395,7 @@ class ChatOpenAI(BaseChatModel):
 
         allow_population_by_field_name = True
 
+    # NOTE: 这个root_validator会在init左右执行，完成各类配置工资
     @root_validator(pre=True)
     def build_extra(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """Build extra kwargs from additional params that were passed in."""
@@ -458,6 +459,7 @@ class ChatOpenAI(BaseChatModel):
                     ) from e
                 values["http_client"] = httpx.Client(proxy=openai_proxy)
             sync_specific = {"http_client": values["http_client"]}
+            # NOTE: 当我们以base_url和api_key构建的时候, 最后会使用openai.OpenAI来封装client服务
             values["client"] = openai.OpenAI(
                 **client_params, **sync_specific
             ).chat.completions
@@ -519,6 +521,7 @@ class ChatOpenAI(BaseChatModel):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> Iterator[ChatGenerationChunk]:
+        # NOTE: 从这里我们可以看出来，传递给client的内容是没有那么多的，模型的配置不在这里传递
         message_dicts, params = self._create_message_dicts(messages, stop)
         params = {**params, **kwargs, "stream": True}
 
